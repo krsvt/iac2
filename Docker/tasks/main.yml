@@ -2,35 +2,30 @@
 # tasks file for Docker
 - name: Install required packages
   ansible.builtin.apt:
-    name:
-      - apt-transport-https # https в apt для скачивания docker
-      - ca-certificates # корневые сертификаты
-      - curl
-      - gnupg # docker проверяет подлинность пакетов через gpg ключи
-      - software-properties-common
+    name: "{{ docker_required_packages }}"
 
 - name: Create directory for Docker's GPG key
   ansible.builtin.file:
-    path: /etc/apt/keyrings
+    path: "{{ docker_gpg_key_directory }}"
     state: directory
     mode: "0755"
 
 - name: Add Docker's official GPG key
   ansible.builtin.get_url:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    dest: /etc/apt/keyrings/docker.asc
+    url: "{{ docker_gpg_key_url }}"
+    dest: "{{ docker_gpg_key_path }}"
 
 - name: Ensure docker.asc has read permissions for all users
   file:
-    path: /etc/apt/keyrings/docker.asc
+    path: "{{ docker_gpg_key_path }}"
     mode: "0644"
     state: file
 
 - name: Add Docker APT repository
   ansible.builtin.apt_repository:
     repo: >-
-      deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc]
-      https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+      deb [arch=amd64 signed-by={{ docker_gpg_key_path }}]
+      {{ docker_url }} {{ docker_dist }} {{ docker_version }}
     filename: docker
     state: present
     update_cache: yes
@@ -39,12 +34,7 @@
   apt:
     update_cache: true
     state: present
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
+    name: "{{ docker_packages }}"
 
 # Linux Docker postinstall
 - name: Add Docker group
@@ -54,7 +44,7 @@
 
 - name: Add user to Docker group
   ansible.builtin.user:
-    name: "{{ ansible_user }}"
+    name: "{{ docker_user }}"
     groups: docker
     append: true
 
@@ -63,6 +53,4 @@
     name: "{{ item }}"
     enabled: true
     state: started
-  loop:
-    - docker.service
-    - containerd.service
+  loop: "{{ docker_services }}"

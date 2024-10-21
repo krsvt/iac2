@@ -9,7 +9,7 @@
 
     - name: Ensure Docker is set up
       include_role:
-        name: Docker
+        name: docker
 
     - name: Run image
       community.docker.docker_container:
