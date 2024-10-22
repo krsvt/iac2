@@ -6,6 +6,7 @@
     - name: Ensure apt package list is updated (apt-get update)
       apt: # модуль ansible.builtin.apt
         update_cache: true
+        cache_valid_time: 3600
 
     - name: Ensure Docker is set up
       include_role:
