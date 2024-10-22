@@ -2,15 +2,13 @@
 - name: Playbook for Docker installation
   hosts: app
   become: true # Выполнение от имени root
+  roles:
+    - docker
   tasks:
     - name: Ensure apt package list is updated (apt-get update)
       apt: # модуль ansible.builtin.apt
         update_cache: true
         cache_valid_time: 3600
-
-    - name: Ensure Docker is set up
-      include_role:
-        name: docker
 
     - name: Run image
       community.docker.docker_container:
